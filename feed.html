@@ -1,294 +1,936 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Лента - SchoolSpace</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body class="feed-page">
-    <!-- Верхняя панель -->
-    <div class="top-bar">
-        <div class="container">
-            <div class="top-bar-content">
-                <button class="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
+// ===== ОСНОВНАЯ ЛОГИКА ЛЕНТЫ =====
+
+// Состояние приложения
+const AppState = {
+    currentUser: null,
+    posts: [],
+    friends: [],
+    messages: [],
+    photos: [],
+    events: [],
+    onlineFriends: [],
+    currentTab: 'feed',
+    isLoading: false
+};
+
+// Инициализация приложения
+document.addEventListener('DOMContentLoaded', function() {
+    // Загружаем пользователя
+    loadCurrentUser();
+    
+    // Инициализируем вкладки
+    initTabs();
+    
+    // Инициализируем создание постов
+    initPostCreation();
+    
+    // Загружаем начальные данные
+    loadInitialData();
+    
+    // Инициализируем поиск
+    initSearch();
+    
+    // Инициализируем уведомления
+    initNotifications();
+    
+    // Инициализируем меню пользователя
+    initUserMenu();
+});
+
+// ===== ЗАГРУЗКА ПОЛЬЗОВАТЕЛЯ =====
+function loadCurrentUser() {
+    // Пытаемся загрузить из sessionStorage (вход)
+    let sessionData = sessionStorage.getItem('schoolspace_session');
+    
+    if (sessionData) {
+        try {
+            AppState.currentUser = JSON.parse(sessionData);
+        } catch(e) {
+            console.error('Ошибка загрузки сессии:', e);
+            redirectToLogin();
+        }
+    } else {
+        // Пытаемся загрузить из localStorage (регистрация)
+        let userData = localStorage.getItem('schoolspace_user');
+        
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                AppState.currentUser = {
+                    username: user.username,
+                    fullName: user.fullName,
+                    class: user.class,
+                    loggedIn: true,
+                    timestamp: new Date().toISOString()
+                };
                 
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Поиск в SchoolSpace...">
+                // Сохраняем в sessionStorage
+                sessionStorage.setItem('schoolspace_session', JSON.stringify(AppState.currentUser));
+                
+                // Обновляем UI
+                updateUserUI();
+            } catch(e) {
+                console.error('Ошибка загрузки пользователя:', e);
+                redirectToLogin();
+            }
+        } else {
+            // Нет пользователя - редирект на вход
+            redirectToLogin();
+        }
+    }
+}
+
+function redirectToLogin() {
+    setTimeout(() => {
+        alert('Пожалуйста, войдите в систему');
+        window.location.href = 'login.html';
+    }, 100);
+}
+
+function updateUserUI() {
+    if (AppState.currentUser) {
+        // Обновляем имя в навигации
+        const userNameElements = document.querySelectorAll('.user-name-small, .profile-name');
+        userNameElements.forEach(el => {
+            if (el.classList.contains('profile-name')) {
+                el.textContent = AppState.currentUser.fullName || 'Пользователь';
+            } else {
+                el.textContent = AppState.currentUser.username || 'Пользователь';
+            }
+        });
+        
+        // Обновляем класс
+        const classElements = document.querySelectorAll('.user-class-small, .profile-class');
+        classElements.forEach(el => {
+            el.textContent = `${AppState.currentUser.class || 'Не указан'} класс, Школа №5`;
+        });
+        
+        // Обновляем аватары
+        const avatarElements = document.querySelectorAll('.user-avatar-small, .profile-avatar-large, .post-author-avatar');
+        avatarElements.forEach(el => {
+            const name = AppState.currentUser.fullName || AppState.currentUser.username || 'User';
+            el.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&size=150`;
+        });
+    }
+}
+
+// ===== ВКЛАДКИ =====
+function initTabs() {
+    const tabButtons = document.querySelectorAll('.nav-item[data-tab]');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Убираем активный класс у всех кнопок
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            // Добавляем активный класс текущей кнопке
+            this.classList.add('active');
+            
+            // Получаем ID вкладки
+            const tabId = this.getAttribute('data-tab');
+            AppState.currentTab = tabId;
+            
+            // Скрываем все вкладки
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Показываем нужную вкладку
+            const targetTab = document.getElementById(`${tabId}-tab`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+                
+                // Загружаем данные для вкладки при первом открытии
+                loadTabData(tabId);
+            }
+        });
+    });
+}
+
+function loadTabData(tabId) {
+    switch(tabId) {
+        case 'feed':
+            if (AppState.posts.length === 0) {
+                loadPosts();
+            }
+            break;
+        case 'friends':
+            if (AppState.friends.length === 0) {
+                loadFriends();
+            }
+            break;
+        case 'messages':
+            if (AppState.messages.length === 0) {
+                loadMessages();
+            }
+            break;
+        case 'photos':
+            if (AppState.photos.length === 0) {
+                loadPhotos();
+            }
+            break;
+    }
+}
+
+// ===== СОЗДАНИЕ ПОСТОВ =====
+function initPostCreation() {
+    const postInput = document.getElementById('postInput');
+    const submitBtn = document.getElementById('submitPostBtn');
+    
+    if (!postInput || !submitBtn) return;
+    
+    // Обработка ввода
+    postInput.addEventListener('input', function() {
+        submitBtn.disabled = this.value.trim().length === 0;
+    });
+    
+    // Обработка нажатия Enter (Shift+Enter для новой строки)
+    postInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!submitBtn.disabled) {
+                createPost();
+            }
+        }
+    });
+    
+    // Обработка кнопки отправки
+    submitBtn.addEventListener('click', createPost);
+    
+    // Обработка кнопок опций
+    const postOptions = document.querySelectorAll('.post-option');
+    postOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const type = this.getAttribute('data-type');
+            handlePostOption(type);
+        });
+    });
+}
+
+function handlePostOption(type) {
+    switch(type) {
+        case 'photo':
+            alert('Функция добавления фото будет доступна в ближайшее время');
+            break;
+        case 'video':
+            alert('Функция добавления видео будет доступна в ближайшее время');
+            break;
+        case 'event':
+            alert('Функция создания события будет доступна в ближайшее время');
+            break;
+        case 'poll':
+            alert('Функция создания опроса будет доступна в ближайшее время');
+            break;
+    }
+}
+
+function createPost() {
+    const postInput = document.getElementById('postInput');
+    const submitBtn = document.getElementById('submitPostBtn');
+    
+    const content = postInput.value.trim();
+    if (!content || !AppState.currentUser) return;
+    
+    // Блокируем кнопку
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Публикация...';
+    
+    // Создаем объект поста
+    const newPost = {
+        id: Date.now(),
+        author: {
+            name: AppState.currentUser.fullName || AppState.currentUser.username,
+            class: AppState.currentUser.class,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(AppState.currentUser.fullName || AppState.currentUser.username)}&background=6366f1&color=fff&size=150`
+        },
+        content: content,
+        timestamp: new Date().toISOString(),
+        likes: 0,
+        comments: [],
+        liked: false
+    };
+    
+    // Добавляем в начало массива
+    AppState.posts.unshift(newPost);
+    
+    // Обновляем UI
+    renderPosts();
+    
+    // Обновляем счетчик постов
+    updatePostsCount();
+    
+    // Очищаем поле ввода
+    postInput.value = '';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Опубликовать';
+    
+    // Показываем уведомление
+    showNotification('Пост успешно опубликован!', 'success');
+    
+    // Прячем сообщение о пустой ленте
+    const emptyFeed = document.getElementById('emptyFeed');
+    if (emptyFeed) {
+        emptyFeed.style.display = 'none';
+    }
+}
+
+// ===== ЗАГРУЗКА ПОСТОВ =====
+function loadPosts() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const postsContainer = document.getElementById('postsContainer');
+    const emptyFeed = document.getElementById('emptyFeed');
+    
+    if (loadingIndicator) loadingIndicator.classList.add('active');
+    
+    // Имитация загрузки с сервера
+    setTimeout(() => {
+        // Генерируем тестовые посты, если их нет
+        if (AppState.posts.length === 0) {
+            generateSamplePosts();
+        }
+        
+        // Рендерим посты
+        renderPosts();
+        
+        if (loadingIndicator) loadingIndicator.classList.remove('active');
+        
+        // Показываем сообщение о пустой ленте, если нет постов
+        if (postsContainer && emptyFeed) {
+            if (AppState.posts.length === 0) {
+                emptyFeed.style.display = 'block';
+                postsContainer.innerHTML = '';
+            } else {
+                emptyFeed.style.display = 'none';
+            }
+        }
+    }, 1000);
+}
+
+function generateSamplePosts() {
+    const samplePosts = [
+        {
+            id: 1,
+            author: {
+                name: "Мария Петрова",
+                class: "Учитель математики",
+                avatar: "https://ui-avatars.com/api/?name=Мария+Петрова&background=dc143c&color=fff&size=150"
+            },
+            content: "Напоминаю, что завтра контрольная работа по алгебре. Повторите темы: квадратные уравнения и графики функций. Удачи всем! 📚✏️",
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 часа назад
+            likes: 24,
+            comments: [
+                { author: "Иван Сидоров", text: "Спасибо за напоминание!", time: "1 час назад" },
+                { author: "Анна Козлова", text: "Будем готовиться!", time: "45 минут назад" }
+            ],
+            liked: false
+        },
+        {
+            id: 2,
+            author: {
+                name: "Сергей Козлов",
+                class: "10Б класс",
+                avatar: "https://ui-avatars.com/api/?name=Сергей+Козлов&background=32CD32&color=fff&size=150"
+            },
+            content: "Завтра после уроков футбол на школьном поле! Кто с нами? Приносите сменную форму! ⚽",
+            timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 часов назад
+            likes: 42,
+            comments: [
+                { author: "Дмитрий В.", text: "Я буду!", time: "4 часа назад" },
+                { author: "Алексей Н.", text: "Я тоже присоединюсь", time: "3 часа назад" },
+                { author: "Максим П.", text: "Голкипер уже есть?", time: "2 часа назад" }
+            ],
+            liked: false
+        },
+        {
+            id: 3,
+            author: {
+                name: "Анна Ковалева",
+                class: "11А класс",
+                avatar: "https://ui-avatars.com/api/?name=Анна+Ковалева&background=FF69B4&color=fff&size=150"
+            },
+            content: "Кто хочет помочь с организацией выпускного? Нужны ответственные и креативные! 🎓✨",
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 день назад
+            likes: 56,
+            comments: [
+                { author: "Елена С.", text: "Я могу помочь!", time: "20 часов назад" },
+                { author: "Павел М.", text: "Какая помощь нужна?", time: "18 часов назад" }
+            ],
+            liked: true
+        }
+    ];
+    
+    AppState.posts = samplePosts;
+}
+
+function renderPosts() {
+    const postsContainer = document.getElementById('postsContainer');
+    if (!postsContainer) return;
+    
+    postsContainer.innerHTML = '';
+    
+    AppState.posts.forEach(post => {
+        const postElement = createPostElement(post);
+        postsContainer.appendChild(postElement);
+    });
+}
+
+function createPostElement(post) {
+    const postElement = document.createElement('div');
+    postElement.className = 'post-card';
+    postElement.dataset.id = post.id;
+    
+    // Форматируем время
+    const timeAgo = formatTimeAgo(new Date(post.timestamp));
+    
+    postElement.innerHTML = `
+        <div class="post-header">
+            <img src="${post.author.avatar}" alt="Аватар" class="post-author-avatar-small">
+            <div class="post-author-info">
+                <div class="post-author-name">
+                    ${post.author.name}
+                    <span class="author-class">${post.author.class}</span>
                 </div>
-                
-                <div class="top-bar-actions">
-                    <button class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </button>
-                    
-                    <div class="user-dropdown">
-                        <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=6366f1&color=fff" 
-                             alt="Аватар" class="user-avatar">
-                        <span class="user-name">Алексей</span>
-                        <i class="fas fa-chevron-down"></i>
-                        
-                        <div class="dropdown-menu">
-                            <a href="#"><i class="fas fa-user"></i> Профиль</a>
-                            <a href="#"><i class="fas fa-cog"></i> Настройки</a>
-                            <a href="#"><i class="fas fa-question-circle"></i> Помощь</a>
-                            <div class="divider"></div>
-                            <a href="index.html"><i class="fas fa-sign-out-alt"></i> Выйти</a>
-                        </div>
-                    </div>
+                <div class="post-time">
+                    <i class="far fa-clock"></i> ${timeAgo}
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Основной контент -->
-    <div class="container feed-container">
-        <!-- Левая панель -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <a href="#" class="logo">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>SchoolSpace</span>
-                </a>
-            </div>
-            
-            <div class="sidebar-content">
-                <!-- Навигация -->
-                <nav class="sidebar-nav">
-                    <a href="#" class="active">
-                        <i class="fas fa-home"></i>
-                        <span>Лента</span>
-                    </a>
-                    <a href="#">
-                        <i class="fas fa-user-friends"></i>
-                        <span>Друзья</span>
-                        <span class="badge">12</span>
-                    </a>
-                    <a href="#">
-                        <i class="fas fa-users"></i>
-                        <span>Группы</span>
-                    </a>
-                    <a href="#">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>События</span>
-                        <span class="badge">3</span>
-                    </a>
-                    <a href="#">
-                        <i class="fas fa-comments"></i>
-                        <span>Сообщения</span>
-                        <span class="badge">5</span>
-                    </a>
-                    <a href="#">
-                        <i class="fas fa-images"></i>
-                        <span>Фото</span>
-                    </a>
-                    <a href="#">
-                        <i class="fas fa-video"></i>
-                        <span>Видео</span>
-                    </a>
-                </nav>
-                
-                <!-- Школьная информация -->
-                <div class="school-info-card">
-                    <div class="school-header">
-                        <i class="fas fa-school"></i>
-                        <h4>Школа №123</h4>
-                    </div>
-                    <div class="school-stats">
-                        <div class="stat">
-                            <div class="number">850</div>
-                            <div class="label">учащихся</div>
-                        </div>
-                        <div class="stat">
-                            <div class="number">45</div>
-                            <div class="label">учителей</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Группы -->
-                <div class="groups-section">
-                    <h5>Ваши группы</h5>
-                    <div class="group">
-                        <div class="group-avatar" style="background: #3b82f6;">
-                            <i class="fas fa-futbol"></i>
-                        </div>
-                        <span>Школьная футбольная команда</span>
-                    </div>
-                    <div class="group">
-                        <div class="group-avatar" style="background: #8b5cf6;">
-                            <i class="fas fa-music"></i>
-                        </div>
-                        <span>Музыкальный клуб</span>
-                    </div>
-                    <div class="group">
-                        <div class="group-avatar" style="background: #10b981;">
-                            <i class="fas fa-code"></i>
-                        </div>
-                        <span>IT-кружок</span>
-                    </div>
-                </div>
-                
-                <!-- Друзья онлайн -->
-                <div class="online-friends">
-                    <h5>Друзья онлайн <span class="online-count">8</span></h5>
-                    <div class="friend">
-                        <img src="https://ui-avatars.com/api/?name=Анна+К&background=ec4899&color=fff" alt="Аватар">
-                        <span>Анна К.</span>
-                        <div class="online-dot"></div>
-                    </div>
-                    <div class="friend">
-                        <img src="https://ui-avatars.com/api/?name=Дмитрий+В&background=f59e0b&color=fff" alt="Аватар">
-                        <span>Дмитрий В.</span>
-                        <div class="online-dot"></div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Центральная колонка -->
-        <main class="feed-main">
-            <!-- Создание поста -->
-            <div class="create-post-card">
-                <div class="create-post-header">
-                    <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=6366f1&color=fff" 
-                         alt="Аватар" class="user-avatar">
-                    <textarea placeholder="Что нового в школе, Алексей?" 
-                              id="postText"></textarea>
-                </div>
-                
-                <div class="create-post-options">
-                    <button class="option-btn" data-type="photo">
-                        <i class="fas fa-image"></i> Фото
-                    </button>
-                    <button class="option-btn" data-type="video">
-                        <i class="fas fa-video"></i> Видео
-                    </button>
-                    <button class="option-btn" data-type="event">
-                        <i class="fas fa-calendar"></i> Событие
-                    </button>
-                    <button class="option-btn" data-type="poll">
-                        <i class="fas fa-chart-bar"></i> Опрос
-                    </button>
-                </div>
-                
-                <div class="create-post-footer">
-                    <div class="privacy-selector">
-                        <i class="fas fa-globe-europe"></i>
-                        <span>Для всех в школе</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <button class="btn-primary" id="publishPost">
-                        Опубликовать
-                    </button>
+        
+        <div class="post-content">
+            <p>${formatPostContent(post.content)}</p>
+        </div>
+        
+        <div class="post-stats">
+            <span><i class="fas fa-thumbs-up"></i> ${post.likes} лайков</span>
+            <span>${post.comments.length} комментариев</span>
+        </div>
+        
+        <div class="post-actions-bar">
+            <button class="post-action-btn ${post.liked ? 'active' : ''}" data-action="like">
+                <i class="fas fa-thumbs-up"></i> ${post.liked ? 'Вам нравится' : 'Нравится'}
+            </button>
+            <button class="post-action-btn" data-action="comment">
+                <i class="fas fa-comment"></i> Комментировать
+            </button>
+            <button class="post-action-btn" data-action="share">
+                <i class="fas fa-share"></i> Поделиться
+            </button>
+        </div>
+        
+        <div class="comments-section">
+            <div class="comment-input-container">
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(AppState.currentUser?.fullName || 'User')}&background=6366f1&color=fff&size=150" 
+                     alt="Аватар" class="comment-avatar">
+                <div class="comment-input-wrapper">
+                    <textarea class="comment-input" placeholder="Напишите комментарий..."></textarea>
+                    <button class="comment-submit">Отправить</button>
                 </div>
             </div>
             
-            <!-- Посты -->
-            <div id="postsContainer">
-                <!-- Посты будут добавляться здесь динамически -->
-            </div>
-            
-            <!-- Загрузчик -->
-            <div class="loader" id="postsLoader">
-                <div class="spinner"></div>
-                <p>Загрузка новых постов...</p>
-            </div>
-        </main>
-
-        <!-- Правая колонка -->
-        <aside class="right-sidebar">
-            <!-- Профиль -->
-            <div class="profile-card">
-                <div class="profile-header">
-                    <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=6366f1&color=fff&size=150" 
-                         alt="Аватар" class="profile-avatar">
-                    <h3>Алексей Иванов</h3>
-                    <p>11 "А" класс</p>
-                </div>
-                
-                <div class="profile-stats">
-                    <div class="stat">
-                        <div class="number">128</div>
-                        <div class="label">друзей</div>
+            <div class="comments-list">
+                ${post.comments.map(comment => `
+                    <div class="comment-item">
+                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author)}&background=6366f1&color=fff&size=150" 
+                             alt="Аватар" class="comment-author-avatar">
+                        <div class="comment-content">
+                            <div class="comment-author-name">
+                                ${comment.author}
+                                <span class="comment-time">${comment.time}</span>
+                            </div>
+                            <div class="comment-text">${comment.text}</div>
+                        </div>
                     </div>
-                    <div class="stat">
-                        <div class="number">45</div>
-                        <div class="label">постов</div>
-                    </div>
-                    <div class="stat">
-                        <div class="number">234</div>
-                        <div class="label">лайков</div>
-                    </div>
-                </div>
-                
-                <button class="btn-outline btn-block">
-                    <i class="fas fa-edit"></i> Редактировать профиль
-                </button>
-            </div>
-            
-            <!-- События -->
-            <div class="events-card">
-                <h4>Ближайшие события</h4>
-                <div class="event">
-                    <div class="event-date">
-                        <span class="day">15</span>
-                        <span class="month">Май</span>
-                    </div>
-                    <div class="event-info">
-                        <h5>Выпускной вечер</h5>
-                        <p>Актовый зал, 18:00</p>
-                        <span class="event-meta">45 участников</span>
-                    </div>
-                </div>
-                <div class="event">
-                    <div class="event-date">
-                        <span class="day">20</span>
-                        <span class="month">Май</span>
-                    </div>
-                    <div class="event-info">
-                        <h5>Спортивный день</h5>
-                        <p>Школьный стадион</p>
-                        <span class="event-meta">12 участников</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Объявления школы -->
-            <div class="announcements-card">
-                <h4>Объявления школы</h4>
-                <div class="announcement">
-                    <div class="announcement-icon">
-                        <i class="fas fa-bullhorn"></i>
-                    </div>
-                    <div class="announcement-content">
-                        <p>Запись на летние курсы программирования открыта!</p>
-                        <span class="announcement-author">Директор</span>
-                    </div>
-                </div>
-            </div>
-        </aside>
-    </div>
-
-    <!-- Модальное окно создания поста -->
-    <div class="modal" id="postModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Создание поста</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <!-- Контент модального окна -->
+                `).join('')}
             </div>
         </div>
-    </div>
+    `;
+    
+    // Добавляем обработчики событий
+    const likeBtn = postElement.querySelector('[data-action="like"]');
+    const commentBtn = postElement.querySelector('[data-action="comment"]');
+    const shareBtn = postElement.querySelector('[data-action="share"]');
+    const commentSubmitBtn = postElement.querySelector('.comment-submit');
+    const commentInput = postElement.querySelector('.comment-input');
+    
+    likeBtn.addEventListener('click', () => toggleLike(post.id));
+    commentBtn.addEventListener('click', () => commentInput.focus());
+    shareBtn.addEventListener('click', () => sharePost(post.id));
+    commentSubmitBtn.addEventListener('click', () => addComment(post.id, commentInput.value));
+    
+    commentInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            addComment(post.id, commentInput.value);
+        }
+    });
+    
+    return postElement;
+}
 
-    <script src="script.js"></script>
-</body>
-</html>
+// ===== ФУНКЦИИ ВЗАИМОДЕЙСТВИЯ =====
+function toggleLike(postId) {
+    const post = AppState.posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    post.liked = !post.liked;
+    post.likes += post.liked ? 1 : -1;
+    
+    // Обновляем UI
+    const postElement = document.querySelector(`.post-card[data-id="${postId}"]`);
+    if (postElement) {
+        const likeBtn = postElement.querySelector('[data-action="like"]');
+        const likesCount = postElement.querySelector('.post-stats span:first-child');
+        
+        likeBtn.classList.toggle('active', post.liked);
+        likeBtn.innerHTML = `<i class="fas fa-thumbs-up"></i> ${post.liked ? 'Вам нравится' : 'Нравится'}`;
+        likesCount.innerHTML = `<i class="fas fa-thumbs-up"></i> ${post.likes} лайков`;
+        
+        // Обновляем общий счетчик лайков
+        updateLikesCount();
+    }
+}
+
+function addComment(postId, text) {
+    const commentText = text.trim();
+    if (!commentText) return;
+    
+    const post = AppState.posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const newComment = {
+        author: AppState.currentUser?.fullName || AppState.currentUser?.username || 'Аноним',
+        text: commentText,
+        time: 'Только что'
+    };
+    
+    post.comments.unshift(newComment);
+    
+    // Обновляем UI
+    const postElement = document.querySelector(`.post-card[data-id="${postId}"]`);
+    if (postElement) {
+        const commentsList = postElement.querySelector('.comments-list');
+        const commentInput = postElement.querySelector('.comment-input');
+        
+        // Очищаем поле ввода
+        commentInput.value = '';
+        
+        // Добавляем новый комментарий
+        const commentElement = document.createElement('div');
+        commentElement.className = 'comment-item';
+        commentElement.innerHTML = `
+            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(newComment.author)}&background=6366f1&color=fff&size=150" 
+                 alt="Аватар" class="comment-author-avatar">
+            <div class="comment-content">
+                <div class="comment-author-name">
+                    ${newComment.author}
+                    <span class="comment-time">${newComment.time}</span>
+                </div>
+                <div class="comment-text">${newComment.text}</div>
+            </div>
+        `;
+        
+        commentsList.insertBefore(commentElement, commentsList.firstChild);
+        
+        // Обновляем счетчик комментариев
+        const commentsCount = postElement.querySelector('.post-stats span:last-child');
+        commentsCount.textContent = `${post.comments.length} комментариев`;
+    }
+}
+
+function sharePost(postId) {
+    const post = AppState.posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: `Пост от ${post.author.name}`,
+            text: post.content.substring(0, 100) + '...',
+            url: window.location.href
+        });
+    } else {
+        alert('Функция "Поделиться" доступна в современных браузерах');
+    }
+}
+
+// ===== ДРУЗЬЯ =====
+function loadFriends() {
+    const friendsGrid = document.getElementById('friendsGrid');
+    if (!friendsGrid) return;
+    
+    // Генерируем тестовых друзей
+    const sampleFriends = [
+        { id: 1, name: "Анна Козлова", class: "11А", avatar: "https://ui-avatars.com/api/?name=Анна+Козлова&background=FF69B4&color=fff&size=150" },
+        { id: 2, name: "Дмитрий Волков", class: "11Б", avatar: "https://ui-avatars.com/api/?name=Дмитрий+Волков&background=32CD32&color=fff&size=150" },
+        { id: 3, name: "Елена Сидорова", class: "10А", avatar: "https://ui-avatars.com/api/?name=Елена+Сидорова&background=FFA500&color=fff&size=150" },
+        { id: 4, name: "Максим Петров", class: "10Б", avatar: "https://ui-avatars.com/api/?name=Максим+Петров&background=4169E1&color=fff&size=150" },
+        { id: 5, name: "София Иванова", class: "9А", avatar: "https://ui-avatars.com/api/?name=София+Иванова&background=8A2BE2&color=fff&size=150" },
+        { id: 6, name: "Павел Николаев", class: "9Б", avatar: "https://ui-avatars.com/api/?name=Павел+Николаев&background=DC143C&color=fff&size=150" },
+        { id: 7, name: "Виктория Смирнова", class: "8А", avatar: "https://ui-avatars.com/api/?name=Виктория+Смирнова&background=20B2AA&color=fff&size=150" },
+        { id: 8, name: "Артем Кузнецов", class: "8Б", avatar: "https://ui-avatars.com/api/?name=Артем+Кузнецов&background=FF4500&color=fff&size=150" }
+    ];
+    
+    AppState.friends = sampleFriends;
+    AppState.onlineFriends = sampleFriends.slice(0, 4); // Первые 4 онлайн
+    
+    renderFriends();
+    renderOnlineFriends();
+}
+
+function renderFriends() {
+    const friendsGrid = document.getElementById('friendsGrid');
+    if (!friendsGrid) return;
+    
+    friendsGrid.innerHTML = '';
+    
+    AppState.friends.forEach(friend => {
+        const friendElement = document.createElement('div');
+        friendElement.className = 'friend-card';
+        friendElement.innerHTML = `
+            <img src="${friend.avatar}" alt="Аватар" class="friend-card-avatar">
+            <div class="friend-card-name">${friend.name}</div>
+            <div class="friend-card-class">${friend.class} класс</div>
+            <div class="friend-actions">
+                <button class="btn btn-outline btn-small" data-action="message" data-id="${friend.id}">
+                    <i class="fas fa-comment"></i>
+                </button>
+                <button class="btn btn-primary btn-small" data-action="profile" data-id="${friend.id}">
+                    <i class="fas fa-user"></i>
+                </button>
+            </div>
+        `;
+        
+        friendsGrid.appendChild(friendElement);
+    });
+    
+    // Обновляем счетчик друзей
+    updateFriendsCount();
+}
+
+function renderOnlineFriends() {
+    const onlineFriendsList = document.getElementById('onlineFriendsList');
+    if (!onlineFriendsList) return;
+    
+    onlineFriendsList.innerHTML = '';
+    
+    AppState.onlineFriends.forEach(friend => {
+        const friendElement = document.createElement('div');
+        friendElement.className = 'friend-item';
+        friendElement.innerHTML = `
+            <img src="${friend.avatar}" alt="Аватар" class="friend-avatar">
+            <div class="friend-info">
+                <div class="friend-name">${friend.name}</div>
+                <div class="friend-class">${friend.class} класс</div>
+            </div>
+            <div class="online-status"></div>
+        `;
+        
+        onlineFriendsList.appendChild(friendElement);
+    });
+}
+
+// ===== СООБЩЕНИЯ =====
+function loadMessages() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (!messagesContainer) return;
+    
+    // Генерируем тестовые сообщения
+    const sampleMessages = [
+        { id: 1, sender: "Анна Козлова", text: "Привет! Как дела?", time: "10:30", type: "received" },
+        { id: 2, sender: "Вы", text: "Привет! Всё отлично, готовлюсь к контрольной", time: "10:32", type: "sent" },
+        { id: 3, sender: "Анна Козлова", text: "Я тоже. Может, позанимаемся вместе?", time: "10:33", type: "received" },
+        { id: 4, sender: "Вы", text: "Отличная идея! Когда сможешь?", time: "10:35", type: "sent" }
+    ];
+    
+    AppState.messages = sampleMessages;
+    renderMessages();
+}
+
+function renderMessages() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (!messagesContainer) return;
+    
+    messagesContainer.innerHTML = '';
+    
+    AppState.messages.forEach(message => {
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${message.type}`;
+        messageElement.textContent = message.text;
+        messagesContainer.appendChild(messageElement);
+    });
+    
+    // Прокручиваем вниз
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// ===== ФОТО =====
+function loadPhotos() {
+    const photosGrid = document.getElementById('photosGrid');
+    if (!photosGrid) return;
+    
+    // Генерируем тестовые фото
+    const samplePhotos = [
+        { id: 1, url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", author: "Алексей И.", date: "2 дня назад" },
+        { id: 2, url: "https://images.unsplash.com/photo-1524178234883-043d5c3f3cf4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", author: "Мария П.", date: "3 дня назад" },
+        { id: 3, url: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", author: "Сергей К.", date: "5 дней назад" },
+        { id: 4, url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", author: "Анна К.", date: "1 неделя назад" },
+        { id: 5, url: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", author: "Дмитрий В.", date: "2 недели назад" },
+        { id: 6, url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", author: "Елена С.", date: "2 недели назад" }
+    ];
+    
+    AppState.photos = samplePhotos;
+    renderPhotos();
+}
+
+function renderPhotos() {
+    const photosGrid = document.getElementById('photosGrid');
+    if (!photosGrid) return;
+    
+    photosGrid.innerHTML = '';
+    
+    AppState.photos.forEach(photo => {
+        const photoElement = document.createElement('div');
+        photoElement.className = 'photo-item';
+        photoElement.innerHTML = `
+            <img src="${photo.url}" alt="Фото">
+            <div class="photo-overlay">
+                <div class="photo-author">${photo.author}</div>
+                <div class="photo-date">${photo.date}</div>
+            </div>
+        `;
+        
+        photosGrid.appendChild(photoElement);
+    });
+}
+
+// ===== СОБЫТИЯ =====
+function loadEvents() {
+    const eventsList = document.getElementById('eventsList');
+    if (!eventsList) return;
+    
+    // Генерируем тестовые события
+    const sampleEvents = [
+        { id: 1, title: "Выпускной вечер", date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), location: "Актовый зал", participants: 45 },
+        { id: 2, title: "Спортивный день", date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000), location: "Школьный стадион", participants: 12 },
+        { id: 3, title: "Научная конференция", date: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000), location: "Библиотека", participants: 8 }
+    ];
+    
+    AppState.events = sampleEvents;
+    renderEvents();
+}
+
+function renderEvents() {
+    const eventsList = document.getElementById('eventsList');
+    if (!eventsList) return;
+    
+    eventsList.innerHTML = '';
+    
+    AppState.events.forEach(event => {
+        const eventElement = document.createElement('div');
+        eventElement.className = 'event-item';
+        
+        const day = event.date.getDate();
+        const month = event.date.toLocaleString('ru', { month: 'short' });
+        
+        eventElement.innerHTML = `
+            <div class="event-date">
+                <span class="event-day">${day}</span>
+                <span class="event-month">${month}</span>
+            </div>
+            <div class="event-details">
+                <div class="event-title">${event.title}</div>
+                <div class="event-time">${event.location}</div>
+                <div class="event-time">${event.participants} участников</div>
+            </div>
+        `;
+        
+        eventsList.appendChild(eventElement);
+    });
+}
+
+// ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+function formatTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Только что';
+    if (diffMins < 60) return `${diffMins} мин назад`;
+    if (diffHours < 24) return `${diffHours} ч назад`;
+    if (diffDays < 7) return `${diffDays} дн назад`;
+    return date.toLocaleDateString('ru');
+}
+
+function formatPostContent(content) {
+    // Заменяем переносы строк на <br>
+    return content.replace(/\n/g, '<br>');
+}
+
+function updateFriendsCount() {
+    const countElement = document.getElementById('friendsCount');
+    if (countElement) {
+        countElement.textContent = AppState.friends.length;
+    }
+}
+
+function updatePostsCount() {
+    const countElement = document.getElementById('postsCount');
+    if (countElement) {
+        countElement.textContent = AppState.posts.length;
+    }
+}
+
+function updateLikesCount() {
+    const countElement = document.getElementById('likesCount');
+    if (countElement) {
+        const totalLikes = AppState.posts.reduce((sum, post) => sum + post.likes, 0);
+        countElement.textContent = totalLikes;
+    }
+}
+
+// ===== ДРУГИЕ ФУНКЦИОНАЛЬНОСТИ =====
+function initSearch() {
+    const searchInput = document.querySelector('.search-input');
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = this.value.trim();
+            if (query) {
+                alert(`Поиск: ${query}`);
+                // В реальном приложении здесь будет поиск по данным
+            }
+        }
+    });
+}
+
+function initNotifications() {
+    const notificationBtn = document.querySelector('.notification-btn');
+    if (!notificationBtn) return;
+    
+    notificationBtn.addEventListener('click', function() {
+        alert('У вас 3 новых уведомления:\n\n1. Анна добавила новое фото\n2. Дмитрий ответил на ваш комментарий\n3. Завтра школьное собрание');
+    });
+}
+
+function initUserMenu() {
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    if (!userMenuBtn) return;
+    
+    userMenuBtn.addEventListener('click', function() {
+        if (confirm('Хотите выйти из системы?')) {
+            sessionStorage.removeItem('schoolspace_session');
+            window.location.href = 'index.html';
+        }
+    });
+}
+
+function loadInitialData() {
+    // Загружаем события
+    loadEvents();
+    
+    // Загружаем посты
+    loadPosts();
+    
+    // Загружаем друзей (только если это первая загрузка)
+    if (AppState.currentTab === 'friends') {
+        loadFriends();
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Создаем элемент уведомления
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: ${type === 'success' ? 'var(--success)' : 'var(--accent)'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        z-index: 2000;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+        ${message}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Удаляем через 3 секунды
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Добавляем CSS для анимации уведомлений
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .notification {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+`;
+document.head.appendChild(style);
+
+// ===== ОБРАБОТКА БЫСТРЫХ ДЕЙСТВИЙ =====
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.action-button')) {
+        const button = e.target.closest('.action-button');
+        const action = button.getAttribute('data-action');
+        
+        switch(action) {
+            case 'create-post':
+                document.getElementById('postInput')?.focus();
+                break;
+            case 'create-event':
+                alert('Создание событий будет доступно в следующем обновлении');
+                break;
+            case 'create-poll':
+                alert('Создание опросов будет доступно в следующем обновлении');
+                break;
+            case 'settings':
+                alert('Настройки будут доступны в следующем обновлении');
+                break;
+        }
+    }
+    
+    if (e.target.closest('#editProfileBtn')) {
+        alert('Редактирование профиля будет доступно в следующем обновлении');
+    }
+});
+
+// Загрузка всех данных при старте
+setTimeout(loadInitialData, 500);
