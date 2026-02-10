@@ -6,11 +6,148 @@
     <title>Лента | School Space</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ РАБОЧИХ ФУНКЦИЙ */
+        .like-btn.liked {
+            color: #2d87f0;
+            font-weight: bold;
+        }
+        
+        .like-btn.liked i {
+            color: #2d87f0;
+        }
+        
+        .comment-input:focus {
+            border-color: #2d87f0;
+            outline: none;
+        }
+        
+        .post-actions button {
+            transition: all 0.2s;
+        }
+        
+        .post-actions button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #28a745;
+            border-radius: 50%;
+            margin-left: auto;
+            box-shadow: 0 0 8px #28a745;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #a5b4cb;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(45, 135, 240, 0.3);
+            border-top: 3px solid #2d87f0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* УВЕДОМЛЕНИЯ */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1a5fb4;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar-left, .sidebar-right {
+                position: static;
+            }
+            
+            .nav-content {
+                flex-wrap: wrap;
+            }
+            
+            .search-container {
+                width: 100%;
+                order: 3;
+                margin-top: 10px;
+            }
+            
+            .post-actions {
+                flex-direction: column;
+            }
+            
+            .post-actions button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body class="feed-page">
-    <!-- Навигация -->
+    <!-- НАВИГАЦИЯ -->
     <nav class="nav-container">
         <div class="nav-content">
             <a href="index.html" class="nav-logo">
@@ -19,35 +156,35 @@
             </a>
             
             <div class="nav-menu">
-                <a href="#" class="nav-item active" data-tab="feed">
+                <button class="nav-item active" data-tab="feed">
                     <i class="fas fa-home"></i> Лента
-                </a>
-                <a href="#" class="nav-item" data-tab="friends">
+                </button>
+                <button class="nav-item" data-tab="friends">
                     <i class="fas fa-user-friends"></i> Друзья
                     <span class="badge">12</span>
-                </a>
-                <a href="#" class="nav-item" data-tab="messages">
+                </button>
+                <button class="nav-item" data-tab="messages">
                     <i class="fas fa-comments"></i> Сообщения
                     <span class="badge">5</span>
-                </a>
-                <a href="#" class="nav-item" data-tab="photos">
+                </button>
+                <button class="nav-item" data-tab="photos">
                     <i class="fas fa-images"></i> Фото
-                </a>
+                </button>
             </div>
             
             <div class="nav-actions">
                 <div class="search-container">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" placeholder="Поиск в школе...">
+                    <input type="text" class="search-input" placeholder="Поиск в школе..." id="searchInput">
                 </div>
                 
-                <button class="notification-btn">
+                <button class="notification-btn" id="notificationsBtn">
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge">3</span>
                 </button>
                 
                 <button class="user-menu-btn" id="userMenuBtn">
-                    <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=6366f1&color=fff&size=150" 
+                    <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=1a5fb4&color=fff" 
                          alt="Аватар" class="user-avatar-small">
                     <div class="user-info-small">
                         <span class="user-name-small">Алексей</span>
@@ -59,13 +196,13 @@
         </div>
     </nav>
 
-    <!-- Основной контент -->
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
     <main class="main-content">
-        <!-- Левая боковая панель -->
+        <!-- ЛЕВАЯ ПАНЕЛЬ -->
         <aside class="sidebar-left">
-            <!-- Профиль пользователя -->
+            <!-- ПРОФИЛЬ -->
             <div class="user-profile-card">
-                <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=6366f1&color=fff&size=150" 
+                <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=1a5fb4&color=fff&size=150" 
                      alt="Аватар" class="profile-avatar-large">
                 <h3 class="profile-name">Алексей Иванов</h3>
                 <p class="profile-class">11 класс, Школа №5</p>
@@ -76,11 +213,11 @@
                         <span class="stat-label">Друзей</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-value" id="postsCount">45</span>
+                        <span class="stat-value" id="postsCount">3</span>
                         <span class="stat-label">Постов</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-value" id="likesCount">234</span>
+                        <span class="stat-value" id="likesCount">122</span>
                         <span class="stat-label">Лайков</span>
                     </div>
                 </div>
@@ -90,37 +227,38 @@
                 </button>
             </div>
             
-            <!-- Быстрые действия -->
+            <!-- БЫСТРЫЕ ДЕЙСТВИЯ -->
             <div class="quick-actions">
                 <h3><i class="fas fa-bolt"></i> Быстрые действия</h3>
                 <div class="action-buttons">
-                    <a href="#" class="action-button" data-action="create-post">
+                    <button class="action-button" id="newPostBtn">
                         <i class="fas fa-plus-circle"></i>
                         <span>Новый пост</span>
-                    </a>
-                    <a href="#" class="action-button" data-action="create-event">
+                    </button>
+                    <button class="action-button" id="createEventBtn">
                         <i class="fas fa-calendar-plus"></i>
                         <span>Создать событие</span>
-                    </a>
-                    <a href="#" class="action-button" data-action="create-poll">
+                    </button>
+                    <button class="action-button" id="createPollBtn">
                         <i class="fas fa-chart-bar"></i>
                         <span>Создать опрос</span>
-                    </a>
-                    <a href="#" class="action-button" data-action="settings">
+                    </button>
+                    <button class="action-button" id="settingsBtn">
                         <i class="fas fa-cog"></i>
                         <span>Настройки</span>
-                    </a>
+                    </button>
                 </div>
             </div>
         </aside>
 
-        <!-- Центральная колонка - Лента -->
+        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА -->
         <div class="feed-column">
-            <!-- Создание поста (только на вкладке лента) -->
+            <!-- ВКЛАДКА ЛЕНТА -->
             <div class="tab-content active" id="feed-tab">
+                <!-- СОЗДАНИЕ ПОСТА -->
                 <div class="create-post-container">
                     <div class="create-post-header">
-                        <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=6366f1&color=fff&size=150" 
+                        <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=1a5fb4&color=fff" 
                              alt="Аватар" class="post-author-avatar">
                         <div class="post-input-container">
                             <textarea class="post-input" id="postInput" 
@@ -143,119 +281,718 @@
                         </button>
                     </div>
                     
-                    <button class="post-submit-btn" id="submitPostBtn">
+                    <button class="btn btn-primary btn-block" id="submitPostBtn">
                         <i class="fas fa-paper-plane"></i> Опубликовать
                     </button>
                 </div>
                 
-                <!-- Контейнер постов -->
+                <!-- ПОСТЫ -->
                 <div class="posts-container" id="postsContainer">
-                    <!-- Посты будут вставляться здесь через JavaScript -->
+                    <!-- Посты загружаются здесь -->
                 </div>
                 
-                <!-- Индикатор загрузки -->
-                <div class="loading-indicator" id="loadingIndicator">
-                    <div class="loader"></div>
+                <!-- ЗАГРУЗКА -->
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner"></div>
                     <p>Загрузка постов...</p>
                 </div>
                 
-                <!-- Сообщение о пустой ленте -->
+                <!-- ПУСТАЯ ЛЕНТА -->
                 <div class="empty-feed" id="emptyFeed" style="display: none;">
                     <i class="fas fa-newspaper"></i>
                     <h3>Лента пуста</h3>
-                    <p>Будьте первым, кто поделится новостью! Напишите что-нибудь или найдите друзей.</p>
+                    <p>Будьте первым, кто поделится новостью!</p>
                 </div>
             </div>
             
-            <!-- Вкладка Друзья -->
+            <!-- ВКЛАДКА ДРУЗЬЯ -->
             <div class="tab-content" id="friends-tab">
-                <div class="friends-page">
-                    <h2><i class="fas fa-user-friends"></i> Мои друзья</h2>
+                <div class="widget">
+                    <h3 class="widget-title"><i class="fas fa-user-friends"></i> Мои друзья</h3>
                     <div class="friends-grid" id="friendsGrid">
-                        <!-- Друзья будут загружены через JavaScript -->
+                        <!-- Друзья загружаются здесь -->
                     </div>
                 </div>
             </div>
             
-            <!-- Вкладка Сообщения -->
+            <!-- ВКЛАДКА СООБЩЕНИЯ -->
             <div class="tab-content" id="messages-tab">
-                <div class="messages-page">
-                    <h2><i class="fas fa-comments"></i> Сообщения</h2>
-                    <div class="chat-container">
-                        <div class="messages-container" id="messagesContainer">
-                            <!-- Сообщения будут загружены через JavaScript -->
+                <div class="widget">
+                    <h3 class="widget-title"><i class="fas fa-comments"></i> Сообщения</h3>
+                    <div class="messages-container" id="messagesContainer">
+                        <div class="message received">
+                            Привет! Как дела с домашкой по математике?
                         </div>
-                        <div class="message-input-container">
-                            <textarea class="message-input" id="messageInput" 
-                                      placeholder="Напишите сообщение..."></textarea>
-                            <button class="message-send-btn" id="sendMessageBtn">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
+                        <div class="message sent">
+                            Почти закончил, осталось пару задач
                         </div>
+                        <div class="message received">
+                            Можешь помочь со второй задачей?
+                        </div>
+                    </div>
+                    <div class="message-input-container">
+                        <input type="text" class="message-input" id="messageInput" placeholder="Введите сообщение...">
+                        <button class="btn btn-primary" id="sendMessageBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
             </div>
             
-            <!-- Вкладка Фото -->
+            <!-- ВКЛАДКА ФОТО -->
             <div class="tab-content" id="photos-tab">
-                <div class="photos-page">
-                    <h2><i class="fas fa-images"></i> Фотографии школы</h2>
+                <div class="widget">
+                    <h3 class="widget-title"><i class="fas fa-images"></i> Фотографии школы</h3>
                     <div class="photos-grid" id="photosGrid">
-                        <!-- Фото будут загружены через JavaScript -->
+                        <!-- Фото загружаются здесь -->
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Правая боковая панель -->
+        <!-- ПРАВАЯ ПАНЕЛЬ -->
         <aside class="sidebar-right">
-            <!-- Друзья онлайн -->
-            <div class="online-friends-widget">
+            <!-- ДРУЗЬЯ ОНЛАЙН -->
+            <div class="widget">
                 <h3 class="widget-title">
-                    <i class="fas fa-circle" style="color: var(--success);"></i>
-                    Друзья онлайн
+                    <i class="fas fa-circle" style="color: #28a745;"></i>
+                    Друзья онлайн (8)
                 </h3>
                 <div class="friends-list" id="onlineFriendsList">
-                    <!-- Онлайн друзья будут загружены через JavaScript -->
+                    <!-- Друзья онлайн загружаются здесь -->
                 </div>
             </div>
             
-            <!-- Ближайшие события -->
-            <div class="events-widget">
+            <!-- СОБЫТИЯ -->
+            <div class="widget">
                 <h3 class="widget-title">
                     <i class="fas fa-calendar-alt"></i>
                     Ближайшие события
                 </h3>
                 <div class="events-list" id="eventsList">
-                    <!-- События будут загружены через JavaScript -->
+                    <!-- События загружаются здесь -->
                 </div>
             </div>
             
-            <!-- Статистика школы -->
-            <div class="online-friends-widget">
+            <!-- СТАТИСТИКА -->
+            <div class="widget">
                 <h3 class="widget-title">
                     <i class="fas fa-chart-line"></i>
                     Статистика школы
                 </h3>
                 <div style="padding: 10px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>Активных пользователей:</span>
+                        <span>Активных:</span>
                         <strong>850</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>Постов за сегодня:</span>
+                        <span>Постов сегодня:</span>
                         <strong>24</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span>Новых друзей:</span>
-                        <strong>12</strong>
+                        <span>Друзей всего:</span>
+                        <strong>2300</strong>
                     </div>
                 </div>
             </div>
         </aside>
     </main>
 
-    <!-- JavaScript -->
-    <script src="feed.js"></script>
+    <!-- ВСЕ СКРИПТЫ В ОДНОМ МЕСТЕ -->
+    <script>
+        // ===== ПЕРЕМЕННЫЕ И СОСТОЯНИЕ =====
+        const state = {
+            currentUser: {
+                name: "Алексей Иванов",
+                username: "alexey",
+                class: "11",
+                avatar: "https://ui-avatars.com/api/?name=Алексей+Иванов&background=1a5fb4&color=fff"
+            },
+            posts: [],
+            friends: [],
+            onlineFriends: [],
+            events: [],
+            photos: [],
+            currentTab: 'feed',
+            notifications: 3
+        };
+
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Сайт загружен!");
+            
+            // Загружаем начальные данные
+            loadInitialData();
+            
+            // Инициализируем вкладки
+            initTabs();
+            
+            // Инициализируем создание постов
+            initPostCreation();
+            
+            // Инициализируем другие функции
+            initButtons();
+            
+            // Обновляем UI
+            updateUI();
+        });
+
+        // ===== ЗАГРУЗКА ДАННЫХ =====
+        function loadInitialData() {
+            // Создаем тестовые данные
+            createSampleData();
+            
+            // Показываем посты
+            renderPosts();
+            
+            // Показываем друзей онлайн
+            renderOnlineFriends();
+            
+            // Показываем события
+            renderEvents();
+            
+            // Показываем фото
+            renderPhotos();
+            
+            // Показываем друзей
+            renderFriends();
+        }
+
+        function createSampleData() {
+            // Примерные посты
+            state.posts = [
+                {
+                    id: 1,
+                    author: {
+                        name: "Мария Петрова",
+                        class: "Учитель математики",
+                        avatar: "https://ui-avatars.com/api/?name=Мария+Петрова&background=dc143c&color=fff"
+                    },
+                    content: "Напоминаю, что завтра контрольная работа по алгебре. Повторите темы: квадратные уравнения и графики функций. Удачи всем! 📚✏️",
+                    time: "2 часа назад",
+                    likes: 24,
+                    comments: 8,
+                    liked: false
+                },
+                {
+                    id: 2,
+                    author: {
+                        name: "Сергей Козлов",
+                        class: "10Б класс",
+                        avatar: "https://ui-avatars.com/api/?name=Сергей+Козлов&background=32CD32&color=fff"
+                    },
+                    content: "Завтра после уроков футбол на школьном поле! Кто с нами? Приносите сменную форму! ⚽\n\nНачало в 15:30.",
+                    time: "5 часов назад",
+                    likes: 42,
+                    comments: 15,
+                    liked: true
+                },
+                {
+                    id: 3,
+                    author: {
+                        name: "Анна Ковалева",
+                        class: "11А класс",
+                        avatar: "https://ui-avatars.com/api/?name=Анна+Ковалева&background=FF69B4&color=fff"
+                    },
+                    content: "Кто хочет помочь с организацией выпускного? Нужны ответственные и креативные! 🎓✨\n\nСобрание завтра в кабинете 205.",
+                    time: "1 день назад",
+                    likes: 56,
+                    comments: 12,
+                    liked: false
+                }
+            ];
+
+            // Примерные друзья онлайн
+            state.onlineFriends = [
+                { id: 1, name: "Анна К.", class: "11А", avatar: "https://ui-avatars.com/api/?name=Анна+К&background=FF69B4&color=fff" },
+                { id: 2, name: "Дмитрий В.", class: "11Б", avatar: "https://ui-avatars.com/api/?name=Дмитрий+В&background=32CD32&color=fff" },
+                { id: 3, name: "Елена С.", class: "10А", avatar: "https://ui-avatars.com/api/?name=Елена+С&background=FFA500&color=fff" },
+                { id: 4, name: "Максим П.", class: "10Б", avatar: "https://ui-avatars.com/api/?name=Максим+П&background=4169E1&color=fff" }
+            ];
+
+            // Примерные события
+            state.events = [
+                { id: 1, title: "Выпускной вечер", date: "15 мая", location: "Актовый зал", time: "18:00" },
+                { id: 2, title: "Спортивный день", date: "20 мая", location: "Школьный стадион", time: "10:00" },
+                { id: 3, title: "Научная конференция", date: "25 мая", location: "Библиотека", time: "14:00" }
+            ];
+
+            // Примерные друзья
+            state.friends = [
+                { id: 1, name: "Анна Козлова", class: "11А", avatar: "https://ui-avatars.com/api/?name=Анна+Козлова&background=FF69B4&color=fff" },
+                { id: 2, name: "Дмитрий Волков", class: "11Б", avatar: "https://ui-avatars.com/api/?name=Дмитрий+Волков&background=32CD32&color=fff" },
+                { id: 3, name: "Елена Сидорова", class: "10А", avatar: "https://ui-avatars.com/api/?name=Елена+Сидорова&background=FFA500&color=fff" },
+                { id: 4, name: "Максим Петров", class: "10Б", avatar: "https://ui-avatars.com/api/?name=Максим+Петров&background=4169E1&color=fff" },
+                { id: 5, name: "София Иванова", class: "9А", avatar: "https://ui-avatars.com/api/?name=София+Иванова&background=8A2BE2&color=fff" },
+                { id: 6, name: "Павел Николаев", class: "9Б", avatar: "https://ui-avatars.com/api/?name=Павел+Николаев&background=DC143C&color=fff" }
+            ];
+
+            // Примерные фото
+            state.photos = [
+                { id: 1, url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80", author: "Алексей И.", date: "2 дня назад" },
+                { id: 2, url: "https://images.unsplash.com/photo-1524178234883-043d5c3f3cf4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80", author: "Мария П.", date: "3 дня назад" },
+                { id: 3, url: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80", author: "Сергей К.", date: "5 дней назад" },
+                { id: 4, url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80", author: "Анна К.", date: "1 неделя назад" }
+            ];
+        }
+
+        // ===== ВКЛАДКИ =====
+        function initTabs() {
+            const tabButtons = document.querySelectorAll('.nav-item[data-tab]');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Убираем активный класс у всех кнопок
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    // Добавляем активный класс текущей кнопке
+                    this.classList.add('active');
+                    
+                    // Получаем ID вкладки
+                    const tabId = this.getAttribute('data-tab');
+                    state.currentTab = tabId;
+                    
+                    // Скрываем все вкладки
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Показываем нужную вкладку
+                    const targetTab = document.getElementById(`${tabId}-tab`);
+                    if (targetTab) {
+                        targetTab.classList.add('active');
+                        showNotification(`Переключено на "${this.textContent.trim()}"`);
+                    }
+                });
+            });
+        }
+
+        // ===== СОЗДАНИЕ ПОСТОВ =====
+        function initPostCreation() {
+            const postInput = document.getElementById('postInput');
+            const submitBtn = document.getElementById('submitPostBtn');
+            
+            if (!postInput || !submitBtn) return;
+            
+            // Проверка ввода
+            postInput.addEventListener('input', function() {
+                submitBtn.disabled = this.value.trim().length === 0;
+            });
+            
+            // Отправка поста
+            submitBtn.addEventListener('click', function() {
+                createPost();
+            });
+            
+            // Обработка кнопок опций
+            document.querySelectorAll('.post-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    showNotification(`Добавить ${type} - функция в разработке`);
+                });
+            });
+        }
+
+        function createPost() {
+            const postInput = document.getElementById('postInput');
+            const submitBtn = document.getElementById('submitPostBtn');
+            
+            const content = postInput.value.trim();
+            if (!content) {
+                showNotification('Введите текст поста', 'error');
+                return;
+            }
+            
+            // Создаем новый пост
+            const newPost = {
+                id: Date.now(),
+                author: {
+                    name: state.currentUser.name,
+                    class: state.currentUser.class + " класс",
+                    avatar: state.currentUser.avatar
+                },
+                content: content,
+                time: "Только что",
+                likes: 0,
+                comments: 0,
+                liked: false
+            };
+            
+            // Добавляем в начало
+            state.posts.unshift(newPost);
+            
+            // Обновляем UI
+            renderPosts();
+            
+            // Обновляем счетчики
+            updateCounters();
+            
+            // Очищаем поле
+            postInput.value = '';
+            submitBtn.disabled = true;
+            
+            // Показываем уведомление
+            showNotification('Пост опубликован!', 'success');
+            
+            // Скрываем сообщение о пустой ленте
+            document.getElementById('emptyFeed').style.display = 'none';
+        }
+
+        // ===== РЕНДЕРИНГ ПОСТОВ =====
+        function renderPosts() {
+            const container = document.getElementById('postsContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (state.posts.length === 0) {
+                document.getElementById('emptyFeed').style.display = 'block';
+                return;
+            }
+            
+            state.posts.forEach(post => {
+                const postElement = createPostElement(post);
+                container.appendChild(postElement);
+            });
+            
+            // Обновляем счетчик постов
+            document.getElementById('postsCount').textContent = state.posts.length;
+        }
+
+        function createPostElement(post) {
+            const div = document.createElement('div');
+            div.className = 'post-card';
+            div.dataset.id = post.id;
+            
+            div.innerHTML = `
+                <div class="post-header">
+                    <img src="${post.author.avatar}" alt="Аватар" class="post-author-avatar-small">
+                    <div class="post-author-info">
+                        <div class="post-author-name">
+                            ${post.author.name}
+                            <span class="author-class">${post.author.class}</span>
+                        </div>
+                        <div class="post-time">
+                            <i class="far fa-clock"></i> ${post.time}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="post-content">
+                    <p>${post.content.replace(/\n/g, '<br>')}</p>
+                </div>
+                
+                <div class="post-stats">
+                    <span><i class="fas fa-thumbs-up"></i> ${post.likes} лайков</span>
+                    <span>${post.comments} комментариев</span>
+                </div>
+                
+                <div class="post-actions-bar">
+                    <button class="post-action-btn like-btn ${post.liked ? 'liked' : ''}" data-id="${post.id}">
+                        <i class="fas fa-thumbs-up"></i> ${post.liked ? 'Вам нравится' : 'Нравится'}
+                    </button>
+                    <button class="post-action-btn" data-id="${post.id}">
+                        <i class="fas fa-comment"></i> Комментировать
+                    </button>
+                    <button class="post-action-btn" data-id="${post.id}">
+                        <i class="fas fa-share"></i> Поделиться
+                    </button>
+                </div>
+            `;
+            
+            // Добавляем обработчики
+            const likeBtn = div.querySelector('.like-btn');
+            likeBtn.addEventListener('click', function() {
+                toggleLike(post.id);
+            });
+            
+            return div;
+        }
+
+        // ===== ЛАЙКИ =====
+        function toggleLike(postId) {
+            const post = state.posts.find(p => p.id === postId);
+            if (!post) return;
+            
+            post.liked = !post.liked;
+            post.likes += post.liked ? 1 : -1;
+            
+            // Обновляем UI
+            const postElement = document.querySelector(`.post-card[data-id="${postId}"]`);
+            if (postElement) {
+                const likeBtn = postElement.querySelector('.like-btn');
+                const likeCount = postElement.querySelector('.post-stats span:first-child');
+                
+                likeBtn.classList.toggle('liked', post.liked);
+                likeBtn.innerHTML = `<i class="fas fa-thumbs-up"></i> ${post.liked ? 'Вам нравится' : 'Нравится'}`;
+                likeCount.innerHTML = `<i class="fas fa-thumbs-up"></i> ${post.likes} лайков`;
+                
+                // Обновляем общий счетчик
+                updateLikesCount();
+                
+                showNotification(post.liked ? 'Пост понравился!' : 'Лайк убран', 'success');
+            }
+        }
+
+        // ===== ДРУЗЬЯ ОНЛАЙН =====
+        function renderOnlineFriends() {
+            const container = document.getElementById('onlineFriendsList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            state.onlineFriends.forEach(friend => {
+                const div = document.createElement('div');
+                div.className = 'friend-item';
+                div.innerHTML = `
+                    <img src="${friend.avatar}" alt="Аватар" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">${friend.name}</div>
+                        <div class="friend-class">${friend.class} класс</div>
+                    </div>
+                    <div class="online-dot"></div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ===== СОБЫТИЯ =====
+        function renderEvents() {
+            const container = document.getElementById('eventsList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            state.events.forEach(event => {
+                const div = document.createElement('div');
+                div.className = 'event-item';
+                div.innerHTML = `
+                    <div class="event-date">
+                        <span class="event-day">${event.date.split(' ')[0]}</span>
+                        <span class="event-month">${event.date.split(' ')[1]}</span>
+                    </div>
+                    <div class="event-details">
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-time">${event.location}, ${event.time}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ===== ФОТО =====
+        function renderPhotos() {
+            const container = document.getElementById('photosGrid');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            state.photos.forEach(photo => {
+                const div = document.createElement('div');
+                div.className = 'photo-item';
+                div.innerHTML = `
+                    <img src="${photo.url}" alt="Фото школы">
+                    <div class="photo-overlay">
+                        <div class="photo-author">${photo.author}</div>
+                        <div class="photo-date">${photo.date}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ===== ДРУЗЬЯ =====
+        function renderFriends() {
+            const container = document.getElementById('friendsGrid');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            state.friends.forEach(friend => {
+                const div = document.createElement('div');
+                div.className = 'friend-card';
+                div.innerHTML = `
+                    <img src="${friend.avatar}" alt="Аватар" class="friend-card-avatar">
+                    <div class="friend-card-name">${friend.name}</div>
+                    <div class="friend-card-class">${friend.class} класс</div>
+                    <div class="friend-actions">
+                        <button class="btn btn-outline btn-small">
+                            <i class="fas fa-comment"></i>
+                        </button>
+                        <button class="btn btn-primary btn-small">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            // Обновляем счетчик друзей
+            document.getElementById('friendsCount').textContent = state.friends.length;
+        }
+
+        // ===== СООБЩЕНИЯ =====
+        function initMessages() {
+            const sendBtn = document.getElementById('sendMessageBtn');
+            const input = document.getElementById('messageInput');
+            
+            if (!sendBtn || !input) return;
+            
+            sendBtn.addEventListener('click', function() {
+                sendMessage();
+            });
+            
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const container = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message sent';
+            messageDiv.textContent = message;
+            
+            container.appendChild(messageDiv);
+            input.value = '';
+            
+            // Автоответ через 2 секунды
+            setTimeout(() => {
+                const replyDiv = document.createElement('div');
+                replyDiv.className = 'message received';
+                replyDiv.textContent = getRandomReply();
+                container.appendChild(replyDiv);
+                container.scrollTop = container.scrollHeight;
+            }, 2000);
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function getRandomReply() {
+            const replies = [
+                "Интересно!",
+                "Согласен",
+                "Расскажи подробнее",
+                "Точно!",
+                "А я думал по-другому",
+                "Спасибо за информацию"
+            ];
+            return replies[Math.floor(Math.random() * replies.length)];
+        }
+
+        // ===== КНОПКИ И ФУНКЦИИ =====
+        function initButtons() {
+            // Кнопка уведомлений
+            document.getElementById('notificationsBtn')?.addEventListener('click', function() {
+                showNotification(`У вас ${state.notifications} новых уведомления`, 'success');
+                this.querySelector('.notification-badge').textContent = '0';
+                this.querySelector('.notification-badge').style.display = 'none';
+            });
+            
+            // Кнопка пользователя
+            document.getElementById('userMenuBtn')?.addEventListener('click', function() {
+                if (confirm('Хотите выйти из системы?')) {
+                    window.location.href = 'index.html';
+                }
+            });
+            
+            // Кнопка нового поста
+            document.getElementById('newPostBtn')?.addEventListener('click', function() {
+                document.getElementById('postInput').focus();
+            });
+            
+            // Кнопка редактирования профиля
+            document.getElementById('editProfileBtn')?.addEventListener('click', function() {
+                showNotification('Редактирование профиля - в разработке');
+            });
+            
+            // Кнопка создания события
+            document.getElementById('createEventBtn')?.addEventListener('click', function() {
+                showNotification('Создание события - в разработке');
+            });
+            
+            // Кнопка создания опроса
+            document.getElementById('createPollBtn')?.addEventListener('click', function() {
+                showNotification('Создание опроса - в разработке');
+            });
+            
+            // Кнопка настроек
+            document.getElementById('settingsBtn')?.addEventListener('click', function() {
+                showNotification('Настройки - в разработке');
+            });
+            
+            // Поиск
+            document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value.trim();
+                    if (query) {
+                        showNotification(`Поиск: "${query}" - функция в разработке`);
+                        this.value = '';
+                    }
+                }
+            });
+            
+            // Инициализируем сообщения
+            initMessages();
+        }
+
+        // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+        function updateUI() {
+            // Обновляем аватары везде
+            document.querySelectorAll('.user-avatar-small, .profile-avatar-large, .post-author-avatar').forEach(img => {
+                img.src = state.currentUser.avatar;
+            });
+            
+            // Обновляем имена
+            document.querySelectorAll('.user-name-small, .profile-name').forEach(el => {
+                el.textContent = state.currentUser.name;
+            });
+            
+            // Обновляем класс
+            document.querySelectorAll('.user-class-small, .profile-class').forEach(el => {
+                el.textContent = `${state.currentUser.class} класс, Школа №5`;
+            });
+        }
+
+        function updateCounters() {
+            // Счетчик постов
+            document.getElementById('postsCount').textContent = state.posts.length;
+            
+            // Счетчик лайков
+            updateLikesCount();
+        }
+
+        function updateLikesCount() {
+            const totalLikes = state.posts.reduce((sum, post) => sum + post.likes, 0);
+            document.getElementById('likesCount').textContent = totalLikes;
+        }
+
+        function showNotification(message, type = 'info') {
+            // Создаем элемент уведомления
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Удаляем через 3 секунды
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Запускаем все
+        console.log("JavaScript готов к работе!");
+    </script>
 </body>
 </html>
