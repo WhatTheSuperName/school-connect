@@ -1,7 +1,8 @@
 school-social/
 ├── index.html          # Главная страница с лентой
-├── login.html          # Вход (с красивым дизайном)
-├── register.html       # Регистрация (с красивым дизайном)
+├── login.html          # Вход 
+├── register.html       # Регистрация 
 ├── style.css           # ВСЕ стили в одном файле
 ├── script.js           # JavaScript для ленты
+
 └── README.md
