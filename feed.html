@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лента - SchoolSpace</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="feed-page">
+    <!-- Верхняя панель -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <button class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Поиск в SchoolSpace...">
+                </div>
+                
+                <div class="top-bar-actions">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    
+                    <div class="user-dropdown">
+                        <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=6366f1&color=fff" 
+                             alt="Аватар" class="user-avatar">
+                        <span class="user-name">Алексей</span>
+                        <i class="fas fa-chevron-down"></i>
+                        
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-user"></i> Профиль</a>
+                            <a href="#"><i class="fas fa-cog"></i> Настройки</a>
+                            <a href="#"><i class="fas fa-question-circle"></i> Помощь</a>
+                            <div class="divider"></div>
+                            <a href="index.html"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="container feed-container">
+        <!-- Левая панель -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>SchoolSpace</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-content">
+                <!-- Навигация -->
+                <nav class="sidebar-nav">
+                    <a href="#" class="active">
+                        <i class="fas fa-home"></i>
+                        <span>Лента</span>
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-user-friends"></i>
+                        <span>Друзья</span>
+                        <span class="badge">12</span>
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-users"></i>
+                        <span>Группы</span>
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>События</span>
+                        <span class="badge">3</span>
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-comments"></i>
+                        <span>Сообщения</span>
+                        <span class="badge">5</span>
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-images"></i>
+                        <span>Фото</span>
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-video"></i>
+                        <span>Видео</span>
+                    </a>
+                </nav>
+                
+                <!-- Школьная информация -->
+                <div class="school-info-card">
+                    <div class="school-header">
+                        <i class="fas fa-school"></i>
+                        <h4>Школа №123</h4>
+                    </div>
+                    <div class="school-stats">
+                        <div class="stat">
+                            <div class="number">850</div>
+                            <div class="label">учащихся</div>
+                        </div>
+                        <div class="stat">
+                            <div class="number">45</div>
+                            <div class="label">учителей</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Группы -->
+                <div class="groups-section">
+                    <h5>Ваши группы</h5>
+                    <div class="group">
+                        <div class="group-avatar" style="background: #3b82f6;">
+                            <i class="fas fa-futbol"></i>
+                        </div>
+                        <span>Школьная футбольная команда</span>
+                    </div>
+                    <div class="group">
+                        <div class="group-avatar" style="background: #8b5cf6;">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <span>Музыкальный клуб</span>
+                    </div>
+                    <div class="group">
+                        <div class="group-avatar" style="background: #10b981;">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <span>IT-кружок</span>
+                    </div>
+                </div>
+                
+                <!-- Друзья онлайн -->
+                <div class="online-friends">
+                    <h5>Друзья онлайн <span class="online-count">8</span></h5>
+                    <div class="friend">
+                        <img src="https://ui-avatars.com/api/?name=Анна+К&background=ec4899&color=fff" alt="Аватар">
+                        <span>Анна К.</span>
+                        <div class="online-dot"></div>
+                    </div>
+                    <div class="friend">
+                        <img src="https://ui-avatars.com/api/?name=Дмитрий+В&background=f59e0b&color=fff" alt="Аватар">
+                        <span>Дмитрий В.</span>
+                        <div class="online-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Центральная колонка -->
+        <main class="feed-main">
+            <!-- Создание поста -->
+            <div class="create-post-card">
+                <div class="create-post-header">
+                    <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=6366f1&color=fff" 
+                         alt="Аватар" class="user-avatar">
+                    <textarea placeholder="Что нового в школе, Алексей?" 
+                              id="postText"></textarea>
+                </div>
+                
+                <div class="create-post-options">
+                    <button class="option-btn" data-type="photo">
+                        <i class="fas fa-image"></i> Фото
+                    </button>
+                    <button class="option-btn" data-type="video">
+                        <i class="fas fa-video"></i> Видео
+                    </button>
+                    <button class="option-btn" data-type="event">
+                        <i class="fas fa-calendar"></i> Событие
+                    </button>
+                    <button class="option-btn" data-type="poll">
+                        <i class="fas fa-chart-bar"></i> Опрос
+                    </button>
+                </div>
+                
+                <div class="create-post-footer">
+                    <div class="privacy-selector">
+                        <i class="fas fa-globe-europe"></i>
+                        <span>Для всех в школе</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <button class="btn-primary" id="publishPost">
+                        Опубликовать
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Посты -->
+            <div id="postsContainer">
+                <!-- Посты будут добавляться здесь динамически -->
+            </div>
+            
+            <!-- Загрузчик -->
+            <div class="loader" id="postsLoader">
+                <div class="spinner"></div>
+                <p>Загрузка новых постов...</p>
+            </div>
+        </main>
+
+        <!-- Правая колонка -->
+        <aside class="right-sidebar">
+            <!-- Профиль -->
+            <div class="profile-card">
+                <div class="profile-header">
+                    <img src="https://ui-avatars.com/api/?name=Алексей+Иванов&background=6366f1&color=fff&size=150" 
+                         alt="Аватар" class="profile-avatar">
+                    <h3>Алексей Иванов</h3>
+                    <p>11 "А" класс</p>
+                </div>
+                
+                <div class="profile-stats">
+                    <div class="stat">
+                        <div class="number">128</div>
+                        <div class="label">друзей</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">45</div>
+                        <div class="label">постов</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">234</div>
+                        <div class="label">лайков</div>
+                    </div>
+                </div>
+                
+                <button class="btn-outline btn-block">
+                    <i class="fas fa-edit"></i> Редактировать профиль
+                </button>
+            </div>
+            
+            <!-- События -->
+            <div class="events-card">
+                <h4>Ближайшие события</h4>
+                <div class="event">
+                    <div class="event-date">
+                        <span class="day">15</span>
+                        <span class="month">Май</span>
+                    </div>
+                    <div class="event-info">
+                        <h5>Выпускной вечер</h5>
+                        <p>Актовый зал, 18:00</p>
+                        <span class="event-meta">45 участников</span>
+                    </div>
+                </div>
+                <div class="event">
+                    <div class="event-date">
+                        <span class="day">20</span>
+                        <span class="month">Май</span>
+                    </div>
+                    <div class="event-info">
+                        <h5>Спортивный день</h5>
+                        <p>Школьный стадион</p>
+                        <span class="event-meta">12 участников</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Объявления школы -->
+            <div class="announcements-card">
+                <h4>Объявления школы</h4>
+                <div class="announcement">
+                    <div class="announcement-icon">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div class="announcement-content">
+                        <p>Запись на летние курсы программирования открыта!</p>
+                        <span class="announcement-author">Директор</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Модальное окно создания поста -->
+    <div class="modal" id="postModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Создание поста</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Контент модального окна -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

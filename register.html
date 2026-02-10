@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - SchoolSpace</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Логотип -->
+            <div class="auth-header">
+                <a href="index.html" class="auth-logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>SchoolSpace</span>
+                </a>
+                <h2>Создать аккаунт</h2>
+                <p>Только для учеников и учителей школы</p>
+            </div>
+
+            <!-- Форма регистрации -->
+            <form id="registerForm" class="auth-form">
+                <!-- Шаг 1: Выбор школы -->
+                <div class="form-step active" id="step1">
+                    <div class="form-group">
+                        <label for="schoolSelect">
+                            <i class="fas fa-school"></i> Выберите школу
+                        </label>
+                        <select id="schoolSelect" required>
+                            <option value="">Выберите вашу школу</option>
+                            <option value="school1">Школа №123 им. Пушкина</option>
+                            <option value="school2">Лицей №456</option>
+                            <option value="school3">Гимназия №789</option>
+                            <option value="other">Другая школа</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="otherSchoolGroup" style="display: none;">
+                        <label for="schoolName">
+                            <i class="fas fa-pencil-alt"></i> Название школы
+                        </label>
+                        <input type="text" id="schoolName" 
+                               placeholder="Введите полное название школы">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="accessCode">
+                            <i class="fas fa-key"></i> Код доступа школы
+                        </label>
+                        <input type="text" id="accessCode" required 
+                               placeholder="Получите у администратора">
+                        <div class="form-hint">
+                            Код безопасности для подтверждения принадлежности к школе
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-primary btn-block next-step">
+                        Далее <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Шаг 2: Личная информация -->
+                <div class="form-step" id="step2">
+                    <div class="form-group">
+                        <label for="fullName">
+                            <i class="fas fa-user"></i> Фамилия и Имя
+                        </label>
+                        <input type="text" id="fullName" required 
+                               placeholder="Иванов Алексей">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">
+                            <i class="fas fa-user-tag"></i> Ваша роль
+                        </label>
+                        <select id="role" required>
+                            <option value="">Выберите роль</option>
+                            <optgroup label="Ученики">
+                                <option value="student_9">9 класс</option>
+                                <option value="student_10">10 класс</option>
+                                <option value="student_11">11 класс</option>
+                            </optgroup>
+                            <optgroup label="Персонал">
+                                <option value="teacher">Учитель</option>
+                                <option value="admin">Администратор</option>
+                                <option value="parent">Родитель</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Школьный email
+                        </label>
+                        <input type="email" id="email" required 
+                               placeholder="vasya@school123.edu.ru">
+                        <div class="form-hint">Будет использоваться для входа</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-outline prev-step">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                        <button type="button" class="btn-primary next-step">
+                            Далее <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Шаг 3: Пароль -->
+                <div class="form-step" id="step3">
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Пароль
+                        </label>
+                        <div class="password-input">
+                            <input type="password" id="password" required 
+                                   placeholder="Создайте надежный пароль">
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-bar"></div>
+                            <div class="strength-text">Надежность пароля</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">
+                            <i class="fas fa-lock"></i> Подтверждение пароля
+                        </label>
+                        <div class="password-input">
+                            <input type="password" id="confirmPassword" required 
+                                   placeholder="Повторите пароль">
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox">
+                            <input type="checkbox" id="terms" required>
+                            <span>Я согласен с <a href="#">условиями использования</a> 
+                            и <a href="#">политикой конфиденциальности</a></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox">
+                            <input type="checkbox" id="age" required>
+                            <span>Мне есть 13 лет или я получил разрешение родителей</span>
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-outline prev-step">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-check"></i> Зарегистрироваться
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Прогресс -->
+                <div class="progress-bar">
+                    <div class="progress-step active" data-step="1"></div>
+                    <div class="progress-step" data-step="2"></div>
+                    <div class="progress-step" data-step="3"></div>
+                </div>
+            </form>
+
+            <div class="auth-footer">
+                <p>Уже есть аккаунт? <a href="login.html">Войти</a></p>
+            </div>
+        </div>
+
+        <!-- Декоративная часть -->
+        <div class="auth-decoration">
+            <div class="decoration-content">
+                <h3>Станьте частью сообщества!</h3>
+                <p>Присоединяйтесь к тысячам учеников и учителей</p>
+                
+                <div class="benefits">
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Безопасное общение</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Только школьные контакты</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Без рекламы</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Модерация контента</span>
+                    </div>
+                </div>
+
+                <div class="security-note">
+                    <i class="fas fa-shield-alt"></i>
+                    <p>Мы строго соблюдаем законы о защите данных детей (COPPA)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+</html>
