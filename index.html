@@ -3,215 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SchoolSpace - Социальная сеть вашей школы</title>
+    <title>SchoolSpace - Безопасная сеть школы N5</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-    <!-- Навигация -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <i class="fas fa-graduation-cap"></i>
-                <span>SchoolSpace</span>
+<body class="welcome-screen">
+    <div class="welcome-container">
+        <div class="welcome-logo">
+            <i class="fas fa-shield-alt"></i>
+            <div>
+                <h1>SCHOOLSPACE</h1>
+                <p>Закрытая сеть школы N5</p>
             </div>
-            <div class="nav-menu">
-                <a href="#features">Возможности</a>
-                <a href="#about">О проекте</a>
-                <a href="#security">Безопасность</a>
-                <a href="login.html" class="btn-outline">Войти</a>
-                <a href="register.html" class="btn-primary">Регистрация</a>
-            </div>
-            <button class="menu-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
-    </nav>
 
-    <!-- Герой-секция -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1 class="hero-title">
-                <span class="gradient-text">Закрытое сообщество</span><br>
-                вашей школы
-            </h1>
-            <p class="hero-subtitle">
-                Безопасное пространство для общения, учебы и школьной жизни.
-                Только для учеников и учителей вашей школы.
+        <div class="welcome-message">
+            <p style="color: #8a8a8a; margin-bottom: 40px; font-size: 15px;">
+                Безопасное пространство для учеников школы N5. 
+                Анонимное общение, защита данных, школьное сообщество.
             </p>
-            <div class="hero-buttons">
-                <a href="register.html" class="btn-primary btn-large">
-                    <i class="fas fa-user-plus"></i> Присоединиться
-                </a>
-                <a href="#features" class="btn-outline btn-large">
-                    <i class="fas fa-play-circle"></i> Узнать больше
-                </a>
-            </div>
         </div>
-        <div class="hero-image">
-            <div class="mockup-container">
-                <div class="mockup-screen">
-                    <div class="mockup-header">
-                        <div class="mockup-avatar"></div>
-                        <div class="mockup-info">
-                            <div class="mockup-line"></div>
-                            <div class="mockup-line short"></div>
-                        </div>
-                    </div>
-                    <div class="mockup-content">
-                        <div class="mockup-post">
-                            <div class="mockup-avatar small"></div>
-                            <div class="mockup-text">
-                                <div class="mockup-line"></div>
-                                <div class="mockup-line"></div>
-                                <div class="mockup-line half"></div>
-                            </div>
-                        </div>
-                        <div class="mockup-post">
-                            <div class="mockup-avatar small"></div>
-                            <div class="mockup-text">
-                                <div class="mockup-line"></div>
-                                <div class="mockup-line"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Преимущества -->
-    <section id="features" class="features">
-        <div class="container">
-            <h2 class="section-title">Почему именно SchoolSpace?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3>Безопасность</h3>
-                    <p>Только проверенные пользователи из вашей школы. Никаких посторонних.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-comments"></i>
-                    </div>
-                    <h3>Общение</h3>
-                    <p>Создавайте посты, делитесь новостями, обсуждайте школьные события.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <h3>События</h3>
-                    <p>Организуйте мероприятия, спортивные игры и культурные события.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Сообщества</h3>
-                    <p>Создавайте группы по интересам: спорт, наука, искусство, IT.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Как это работает -->
-    <section id="about" class="how-it-works">
-        <div class="container">
-            <h2 class="section-title">Как присоединиться?</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Регистрация</h3>
-                    <p>Зарегистрируйтесь с школьным email или получите код доступа</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Подтверждение</h3>
-                    <p>Администратор школы подтвердит ваш аккаунт</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Начало работы</h3>
-                    <p>Начните общаться с одноклассниками и учителями</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Статистика -->
-    <section class="stats">
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat">
-                    <div class="stat-number" data-count="100">0</div>
-                    <div class="stat-label">активных школ</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" data-count="50000">0</div>
-                    <div class="stat-label">пользователей</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" data-count="100000">0</div>
-                    <div class="stat-label">постов</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" data-count="99">0</div>
-                    <div class="stat-label">% безопасность</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="cta">
-        <div class="container">
-            <h2>Готовы присоединиться к школьному сообществу?</h2>
-            <p>Начните использовать SchoolSpace уже сегодня</p>
-            <a href="register.html" class="btn-primary btn-large">
-                <i class="fas fa-rocket"></i> Начать бесплатно
+        <div class="welcome-buttons">
+            <a href="login.html" class="btn-primary btn-large">
+                <i class="fas fa-sign-in-alt"></i> ВОЙТИ
+            </a>
+            
+            <a href="register.html" class="btn-outline btn-large">
+                <i class="fas fa-user-plus"></i> РЕГИСТРАЦИЯ
             </a>
         </div>
-    </section>
 
-    <!-- Футер -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>SchoolSpace</span>
-                    <p>Безопасная социальная сеть для школ</p>
-                </div>
-                <div class="footer-links">
-                    <div class="link-group">
-                        <h4>Продукт</h4>
-                        <a href="#features">Возможности</a>
-                        <a href="#security">Безопасность</a>
-                        <a href="#pricing">Для школ</a>
-                    </div>
-                    <div class="link-group">
-                        <h4>Поддержка</h4>
-                        <a href="mailto:help@schoolspace.ru">Помощь</a>
-                        <a href="#">Документация</a>
-                        <a href="#">Контакты</a>
-                    </div>
-                    <div class="link-group">
-                        <h4>Правовая информация</h4>
-                        <a href="#">Политика конфиденциальности</a>
-                        <a href="#">Условия использования</a>
-                        <a href="#">COPPA совместимость</a>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 SchoolSpace. Все права защищены. Только для образовательных целей.</p>
-            </div>
+        <div class="security-note">
+            <p>
+                <i class="fas fa-lock"></i>
+                Доступ только для учеников школы N5. Все данные защищены.
+            </p>
         </div>
-    </footer>
+    </div>
 
     <script src="script.js"></script>
 </body>
