@@ -3,64 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход - SchoolSpace</title>
+    <title>Вход | School Space</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
 </head>
 <body class="auth-page">
     <div class="auth-container">
         <div class="auth-header">
             <a href="index.html" class="auth-logo">
                 <i class="fas fa-shield-alt"></i>
-                <span>SCHOOLSPACE</span>
+                <span>SCHOOL SPACE</span>
             </a>
             <h2>ВХОД В СИСТЕМУ</h2>
-            <p>Только для учеников школы N5</p>
+            <p>Только для зарегистрированных учеников</p>
         </div>
 
         <form id="loginForm" class="auth-form">
             <div class="form-group">
-                <label for="email">
-                    <i class="fas fa-user"></i> ЛОГИН / EMAIL
+                <label for="username">
+                    <i class="fas fa-user"></i> ЛОГИН
                 </label>
-                <input type="text" id="email" required 
-                       placeholder="Ваш логин или школьный email">
+                <input type="text" id="username" class="form-input" required 
+                       placeholder="Ваш логин">
             </div>
 
             <div class="form-group">
                 <label for="password">
                     <i class="fas fa-key"></i> ПАРОЛЬ
                 </label>
-                <div class="password-input">
-                    <input type="password" id="password" required 
-                           placeholder="Введите пароль">
-                    <button type="button" class="toggle-password">
+                <div class="password-wrapper">
+                    <input type="password" id="password" class="form-input" required 
+                           placeholder="Ваш пароль">
+                    <button type="button" class="password-toggle" id="togglePassword">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
+                <div class="form-hint">Пароль должен содержать минимум 6 символов</div>
             </div>
 
-            <div class="form-options">
-                <label class="checkbox">
-                    <input type="checkbox" id="remember">
-                    <span>Запомнить меня</span>
-                </label>
-                <a href="#" class="forgot-password">Забыли пароль?</a>
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="remember">
+                        <span>Запомнить меня на этом устройстве</span>
+                    </label>
+                </div>
             </div>
 
             <div class="error-message" id="loginError">
-                Неверный логин или пароль
+                <i class="fas fa-exclamation-circle"></i>
+                Неверный логин или пароль. Проверьте данные и попробуйте снова.
             </div>
 
-            <button type="submit" class="btn-primary btn-block">
-                <i class="fas fa-sign-in-alt"></i> ВОЙТИ
+            <div class="success-message" id="loginSuccess">
+                <i class="fas fa-check-circle"></i>
+                Успешный вход! Перенаправление...
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-sign-in-alt"></i> ВОЙТИ В СИСТЕМУ
             </button>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="index.html" class="btn btn-outline" style="padding: 12px 24px;">
+                    <i class="fas fa-arrow-left"></i> НАЗАД
+                </a>
+            </div>
         </form>
 
         <div class="auth-footer">
-            <p>Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
-            <p>Вернуться на <a href="index.html">главную</a></p>
+            <p>Нет аккаунта? <a href="register.html">Зарегистрироваться в системе</a></p>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 10px;">
+                <i class="fas fa-info-circle"></i>
+                Если возникли проблемы со входом, обратитесь к администратору системы
+            </p>
         </div>
     </div>
 
@@ -68,31 +86,104 @@
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
             const errorDiv = document.getElementById('loginError');
-            const togglePassword = document.querySelector('.toggle-password');
+            const successDiv = document.getElementById('loginSuccess');
+            const toggleBtn = document.getElementById('togglePassword');
             const passwordInput = document.getElementById('password');
             
+            // Проверяем, есть ли сохранённый пользователь
+            const savedUser = localStorage.getItem('schoolspace_user');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                document.getElementById('username').value = user.username || '';
+            }
+            
             // Переключение видимости пароля
-            togglePassword.addEventListener('click', function() {
+            toggleBtn.addEventListener('click', function() {
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordInput.setAttribute('type', type);
-                this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+                this.innerHTML = type === 'password' ? 
+                    '<i class="fas fa-eye"></i>' : 
+                    '<i class="fas fa-eye-slash"></i>';
             });
             
-            // Проверка логина
+            // Вход в систему
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                const email = document.getElementById('email').value;
+                const username = document.getElementById('username').value.trim();
                 const password = document.getElementById('password').value;
+                const remember = document.getElementById('remember').checked;
                 
-                // Простая проверка (в реальности будет с сервером)
-                if (email && password) {
-                    // Успешный вход
-                    errorDiv.style.display = 'none';
-                    alert('Успешный вход! Перенаправление на ленту...');
-                    window.location.href = 'feed.html'; // Замените на вашу ленту
-                } else {
+                // Скрываем сообщения
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                
+                // Проверяем заполнение полей
+                if (!username || !password) {
+                    errorDiv.textContent = 'Пожалуйста, заполните все поля';
                     errorDiv.style.display = 'block';
+                    return;
+                }
+                
+                // Проверяем пароль
+                if (password.length < 6) {
+                    errorDiv.textContent = 'Пароль должен содержать минимум 6 символов';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                
+                // Имитация проверки на сервере
+                // В реальном приложении здесь будет запрос к серверу
+                
+                // Проверяем существующего пользователя
+                let userExists = false;
+                try {
+                    const savedUser = localStorage.getItem('schoolspace_user');
+                    if (savedUser) {
+                        const user = JSON.parse(savedUser);
+                        userExists = user.username === username;
+                    }
+                } catch(e) {
+                    console.log('Нет сохранённых пользователей');
+                }
+                
+                if (userExists) {
+                    // Успешный вход
+                    successDiv.style.display = 'block';
+                    errorDiv.style.display = 'none';
+                    
+                    // Сохраняем сессию
+                    const sessionData = {
+                        username: username,
+                        loggedIn: true,
+                        timestamp: new Date().toISOString()
+                    };
+                    sessionStorage.setItem('schoolspace_session', JSON.stringify(sessionData));
+                    
+                    // Перенаправляем через 1.5 секунды
+                    setTimeout(() => {
+                        window.location.href = 'feed.html';
+                    }, 1500);
+                } else {
+                    // Ошибка входа
+                    errorDiv.textContent = 'Пользователь не найден. Проверьте данные или зарегистрируйтесь.';
+                    errorDiv.style.display = 'block';
+                    
+                    // Предлагаем регистрацию
+                    setTimeout(() => {
+                        if (confirm('Пользователь не найден. Хотите зарегистрироваться?')) {
+                            window.location.href = 'register.html';
+                        }
+                    }, 1000);
+                }
+            });
+            
+            // Автоматическое скрытие сообщений
+            [errorDiv, successDiv].forEach(div => {
+                if (div.style.display === 'block') {
+                    setTimeout(() => {
+                        div.style.display = 'none';
+                    }, 5000);
                 }
             });
         });
